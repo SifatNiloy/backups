@@ -1,21 +1,10 @@
-year: Year data collected
-month: Numeric representation of the month
-carrier: Carrier.
-carrier_name: Carrier Name.
-airport: Airport code.
-airport_name: Name of airport.
-arr_flights: Number of flights arriving at airport
-arr_del15: Number of flights more than 15 minutes late
-carrier_ct: Number of flights delayed due to air carrier. (e.g. no crew)
-weather_ct: Number of flights due to weather.
-nas_ct: Number of flights delayed due to National Aviation System (e.g. heavy air traffic).
-security_ct: Number of flights canceled due to a security breach.
-late_aircraft_ct: Number of flights delayed as a result of another flight on the same aircraft delayed
-arr_cancelled: Number of cancelled flights
-arr_diverted : Number of flights that were diverted
-arr_delay :Total time (minutes) of delayed flight.
-carrier_delay: Total time (minutes) of delay due to air carrier
-weather_delay: Total time (minutes) of delay due to inclement weather.
-nas_delay: Total time (minutes) of delay due to National Aviation System.
-security_delay: Total time (minutes) of delay as a result of a security issue .
-late_aircraft_delay: Total time (minutes) of delay flights as a result of a previous flight on the same airplane being late.
+
+This dataset provides information about people's finances and backgrounds to help understand the risk associated with giving them loan . Here's a quick overview:
+
+Personal Finances: It includes details like how much money a person makes ('Gross_Income'), their expenses, and the money left after expenses ('Net_Income').
+Demographics: Information about a person's age, gender, work experience, and marital status is included.
+Home and Car: It tells whether a person owns a house ('House_Ownership') or a car ('Car_Ownership').
+Job and Location: Details about the type of job ('Profession'), the city, state, and how many years a person has been in their current job and house.
+Family: The number of family members is provided ('Nos_Family_Members').
+Credit Information: This includes the type of credit a person has ('Credit_Type'), their credit score ('Credit_Score'), and information about co-applicants.
+Risk Assessment: The main point is the 'Risk_Flag,' which shows if someone is considered a credit risk (1) or not (0).

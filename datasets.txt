@@ -1,3 +1,15 @@
-https://grouplens.org/datasets/personality-2018/
+https://www.kaggle.com/datasets/chihle00/loan-prediction
 
-https://www.openintro.org/data/index.php?data=airline_delay
+https://www.kaggle.com/datasets/amankumar2004/loan-prediction-data
+
+https://www.kaggle.com/datasets/dc04492/loan-prediction
+
+https://www.kaggle.com/datasets/kylangentri/bankloan
+
+https://www.kaggle.com/datasets/tristanali/loan-predicition-info
+
+https://www.kaggle.com/datasets/subhamjain/loan-prediction-based-on-customer-behavior
+
+
+selected one: 
+https://www.kaggle.com/datasets/dc04492/loan-prediction
