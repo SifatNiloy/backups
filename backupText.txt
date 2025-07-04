@@ -3,12 +3,13 @@ package org.cloudbus.cloudsim.examples;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class VmScheduleComparison {
 
     public static void main(String[] args) {
-        Log.printLine("Starting VM Scheduling Comparison...");
 
         try {
             // Step 1: Initialize CloudSim
@@ -18,49 +19,55 @@ public class VmScheduleComparison {
             CloudSim.init(numUsers, calendar, traceFlag);
 
             // Step 2: Create Datacenter
-            Datacenter datacenter = createDatacenter("Datacenter_1");
+            Datacenter datacenter = createDatacenter("Datacenter_0");
 
             // Step 3: Create Broker
             DatacenterBroker broker = new DatacenterBroker("Broker");
             int brokerId = broker.getId();
 
-            // Step 4: Create VMs with different schedulers
+            // Step 4: Create VMs (1 with TimeShared, 1 with SpaceShared)
             List<Vm> vmList = new ArrayList<>();
 
-            // VM with TimeShared
-            vmList.add(new Vm(0, brokerId, 1000, 1, 1024, 1000, 10000, "Xen", new CloudletSchedulerTimeShared()));
+            // VM with TimeShared scheduler
+            Vm vm1 = new Vm(0, brokerId, 1000, 1, 2048, 1000, 10000, "Xen", new CloudletSchedulerTimeShared());
+            // VM with SpaceShared scheduler
+            Vm vm2 = new Vm(1, brokerId, 1000, 1, 2048, 1000, 10000, "Xen", new CloudletSchedulerSpaceShared());
 
-            // VM with SpaceShared
-            vmList.add(new Vm(1, brokerId, 1000, 1, 1024, 1000, 10000, "Xen", new CloudletSchedulerSpaceShared()));
+            vmList.add(vm1);
+            vmList.add(vm2);
+            broker.submitVmList(vmList);
 
             // Step 5: Create Cloudlets
             List<Cloudlet> cloudletList = new ArrayList<>();
+            long length = 40000;
+            int pesNumber = 1;
+            long fileSize = 300;
+            long outputSize = 300;
             UtilizationModel utilizationModel = new UtilizationModelFull();
 
             for (int i = 0; i < 4; i++) {
-                Cloudlet cloudlet = new Cloudlet(i, 40000, 1, 300, 300, utilizationModel, utilizationModel, utilizationModel);
+                Cloudlet cloudlet = new Cloudlet(i, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
                 cloudlet.setUserId(brokerId);
-                cloudlet.setVmId(i % 2); // Assign to both VMs
+                // Assign cloudlets: first 2 to vm1 (TimeShared), next 2 to vm2 (SpaceShared)
+                cloudlet.setVmId(i < 2 ? vm1.getId() : vm2.getId());
                 cloudletList.add(cloudlet);
             }
 
-            // Step 6: Submit to broker
-            broker.submitVmList(vmList);
             broker.submitCloudletList(cloudletList);
 
-            // Step 7: Start simulation
+            // Step 6: Start simulation
             CloudSim.startSimulation();
 
-            // Step 8: Results
-            List<Cloudlet> resultList = broker.getCloudletReceivedList();
+            // Step 7: Stop simulation
+            List<Cloudlet> newList = broker.getCloudletReceivedList();
             CloudSim.stopSimulation();
 
-            printCloudletList(resultList);
-            Log.printLine("VM Scheduling Comparison finished!");
+            // Step 8: Print results
+            printCloudletList(newList);
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.printLine("Unwanted errors happened");
+            System.out.println("An error occurred.");
         }
     }
 
@@ -70,32 +77,48 @@ public class VmScheduleComparison {
         List<Pe> peList = new ArrayList<>();
         peList.add(new Pe(0, new PeProvisionerSimple(1000)));
 
-        Host host = new Host(0, new RamProvisionerSimple(2048), new BwProvisionerSimple(10000),
-                1000000, peList, new VmSchedulerTimeShared());
+        int ram = 8192; // host memory (MB)
+        long storage = 1000000; // host storage
+        int bw = 10000;
+
+        Host host = new Host(0, new RamProvisionerSimple(ram),
+                new BwProvisionerSimple(bw), storage, peList,
+                new VmSchedulerTimeShared(peList));
+
         hostList.add(host);
 
-        DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
-                "x86", "Linux", "Xen", hostList, 10.0, 3.0, 0.05, 0.1, 0.1);
+        String arch = "x86";
+        String os = "Linux";
+        String vmm = "Xen";
+        double time_zone = 10.0;
+        double cost = 3.0;
+        double costPerMem = 0.05;
+        double costPerStorage = 0.001;
+        double costPerBw = 0.0;
 
-        return new Datacenter(name, characteristics, new VmAllocationPolicySimple(hostList), new LinkedList<>(), 0);
+        DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
+                arch, os, vmm, hostList, time_zone, cost, costPerMem,
+                costPerStorage, costPerBw);
+
+        return new Datacenter(name, characteristics,
+                new VmAllocationPolicySimple(hostList), new ArrayList<Storage>(), 0);
     }
 
     private static void printCloudletList(List<Cloudlet> list) {
         String indent = "    ";
-        Log.printLine("\n========== OUTPUT ==========\n");
-        Log.printLine("CloudletID" + indent + "STATUS" + indent +
-                "VM ID" + indent + "Time" + indent + "Start Time" + indent + "Finish Time");
+        System.out.println();
+        System.out.println("========== OUTPUT ==========");
+        System.out.println("Cloudlet ID" + indent + "STATUS" + indent +
+                "Data center ID" + indent + "VM ID" + indent + "Time" + indent + "Start Time" + indent + "Finish Time");
 
         for (Cloudlet cloudlet : list) {
-            Log.print(indent + cloudlet.getCloudletId() + indent + indent);
-
             if (cloudlet.getStatus() == Cloudlet.SUCCESS) {
-                Log.print("SUCCESS");
-
-                Log.printLine(indent + indent + cloudlet.getVmId() +
-                        indent + cloudlet.getActualCPUTime() +
-                        indent + cloudlet.getExecStartTime() +
-                        indent + cloudlet.getFinishTime());
+                System.out.println(cloudlet.getCloudletId() + indent + indent + "SUCCESS" +
+                        indent + indent + cloudlet.getResourceId() +
+                        indent + indent + cloudlet.getVmId() +
+                        indent + indent + cloudlet.getActualCPUTime() +
+                        indent + indent + cloudlet.getExecStartTime() +
+                        indent + indent + cloudlet.getFinishTime());
             }
         }
     }
